@@ -16,6 +16,6 @@ Run the tool with
 
 `python main.py <path to current installation> <path to previous version>`
 
-You will then get a list of files in your app/design where the vendor version hsa changed between versions.
+You will then get a list of files in your app/design where the vendor files have changed between versions.
 
 At this time only Magento core modules are checked.
