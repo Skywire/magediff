@@ -14,7 +14,7 @@ Use composer to install a vanilla copy of the version you are comparing against 
 
 Run the tool with
 
-`pytthon main.py <path to current installation> <path to previous version>`
+`python main.py <path to current installation> <path to previous version>`
 
 You will then get a list of files in your app/design where the vendor version hsa changed between versions.
 
