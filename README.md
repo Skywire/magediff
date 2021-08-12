@@ -10,7 +10,7 @@ pip install -r requirements.txt
 
 Use composer to install a vanilla copy of the version you are comparing against (previous version)
 
-`composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:<veresion> <directory>`
+`composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:<version> <directory>`
 
 Run the tool with
 
