@@ -9,16 +9,14 @@ import click
 @click.argument('project_path', type=click.Path(exists=True))
 @click.argument('compare_path', type=click.Path(exists=True))
 def run(project_path, compare_path):
-    source_dirs = get_theme_dirs(project_path)
-    compare_dirs = get_theme_dirs(compare_path)
+    source_dirs = get_vendor_view_dirs(project_path)
+    compare_dirs = get_vendor_view_dirs(compare_path)
     common_dirs = merge_dir_lists(source_dirs, compare_dirs)
 
     diff = diff_dirs(common_dirs, project_path, compare_path)
-    vendor_changed = get_changed_vendor_files(diff)
+    vendor_changed = diff_to_file_list(diff)
 
     design_files = get_app_design_files(project_path)
-
-
 
     fmt = click.HelpFormatter(width=9999)
     fmt.write_heading("Files to review")
@@ -27,7 +25,9 @@ def run(project_path, compare_path):
 
     click.echo(fmt.getvalue())
 
-def get_theme_dirs(path) -> list:
+
+def get_vendor_view_dirs(path) -> list:
+    """Get all view directories under the vendor directory """
     search_path = "{}/vendor/magento/module-*/view/**".format(path)
     paths = glob.glob(search_path, recursive=True)
 
@@ -35,6 +35,7 @@ def get_theme_dirs(path) -> list:
 
 
 def diff_dirs(common_dirs, project_path, compare_path):
+    """Diff directories and return list of dicts containing dir and changed file names"""
     project_dirs = [project_path + p for p in common_dirs]
     compare_dirs = [compare_path + p for p in common_dirs]
     result = []
@@ -54,10 +55,12 @@ def diff_dirs(common_dirs, project_path, compare_path):
 
 
 def merge_dir_lists(source_dirs, compare_dirs):
+    """Return list of directories that appear in both lists"""
     return list(set(source_dirs).intersection(compare_dirs))
 
 
 def get_app_design_files(project_path):
+    """Get all view files under app/design"""
     search_path = "{}/app/design/**".format(project_path)
     extensions = ['xml', 'phtml', 'js', 'html']
     paths = glob.glob(search_path, recursive=True)
@@ -69,7 +72,7 @@ def get_extension(filename) -> str:
     return splitext(filename)[1][1:]
 
 
-def get_changed_vendor_files(vendor_diff):
+def diff_to_file_list(vendor_diff):
     """
     Take the result of the diff function and create a single list of files paths, relative to project root
     """
@@ -83,6 +86,7 @@ def get_changed_vendor_files(vendor_diff):
 
 
 def find_changed_design_files(design_files, vendor_changed):
+    """Get list of all app/design overrides where the vendor file has changed between versions"""
     result = []
     for file in design_files:
         to_vendor = design_path_to_vendor_path(file)
@@ -93,6 +97,7 @@ def find_changed_design_files(design_files, vendor_changed):
 
 
 def design_path_to_vendor_path(path):
+    """Convert app/design override path to vendor view path"""
     parts = path.split('/')
     if 'Magento_' in parts[6]:
         parts[6] = parts[6].replace('Magento_', 'module-').lower() + '/view/' + parts[3]
