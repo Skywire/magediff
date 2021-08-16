@@ -11,8 +11,10 @@ import click
 @click.argument('compare_path', type=click.Path(exists=True))
 @click.option('-p', '--project-path', type=click.Path(exists=True))
 @click.option('-m', '--merge', help="Perform a 3 way merge", default=False, is_flag=True)
-@click.option('-dt', '--diff-theme', help="Diff the theme file to the vendor file (current version)", default=False, is_flag=True)
-@click.option('-dv', '--diff-vendor', help="Diff the current project and compare project vendor files", default=False, is_flag=True)
+@click.option('-dt', '--diff-theme', help="Diff the theme file to the vendor file (current version)", default=False,
+              is_flag=True)
+@click.option('-dv', '--diff-vendor', help="Diff the current project and compare project vendor files", default=False,
+              is_flag=True)
 def run(compare_path, project_path=None, merge=False, diff_theme=False, diff_vendor=False):
     if project_path is None:
         project_path = getcwd()
@@ -128,6 +130,8 @@ def design_path_to_vendor_path(path):
 
 
 def run_three_way_merge(line, project_path, compare_path):
+    """Three way merge between the app/design files, the current version vendor file, and the compare version vendor
+    file """
     local = project_path + line[0]
     remote = project_path + line[1]
     base = compare_path + line[1]
@@ -135,19 +139,24 @@ def run_three_way_merge(line, project_path, compare_path):
     process = subprocess.Popen("bcompare {} {} {}".format(local, remote, base), shell=True, stdout=subprocess.PIPE)
     process.wait()
 
+
 def run_theme_diff(line, project_path):
+    """Diff between the app/design and current version vendor files"""
     local = project_path + line[0]
     remote = project_path + line[1]
 
     process = subprocess.Popen("bcompare {} {}".format(local, remote), shell=True, stdout=subprocess.PIPE)
     process.wait()
 
+
 def run_vendor_diff(line, project_path, compare_path):
+    """Diff between the current version and compare version vendor files"""
     local = project_path + line[1]
     remote = compare_path + line[1]
 
     process = subprocess.Popen("bcompare {} {}".format(local, remote), shell=True, stdout=subprocess.PIPE)
     process.wait()
+
 
 if __name__ == '__main__':
     run()
