@@ -12,9 +12,11 @@ Use composer to install a vanilla copy of the version you are comparing against 
 
 `composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:<version> <directory>`
 
-Run the tool with
+Run the tool from you Magento project directory with
 
-`python main.py <path to current installation> <path to previous version>`
+```
+python <path_to_tool>main.py <path to previous version>
+```
 
 You will then get a list of files in your app/design where the vendor files have changed between versions.
 

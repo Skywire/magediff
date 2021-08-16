@@ -1,14 +1,19 @@
 import glob
 from filecmp import dircmp
+from os import getcwd
 from os.path import splitext, isdir
 
 import click
 
 
 @click.command()
-@click.argument('project_path', type=click.Path(exists=True))
 @click.argument('compare_path', type=click.Path(exists=True))
-def run(project_path, compare_path):
+@click.option('-p','--project-path', type=click.Path(exists=True))
+def run(compare_path, project_path=None):
+
+    if project_path is None:
+        project_path = getcwd()
+
     source_dirs = get_vendor_view_dirs(project_path)
     compare_dirs = get_vendor_view_dirs(compare_path)
     common_dirs = merge_dir_lists(source_dirs, compare_dirs)
