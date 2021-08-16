@@ -1,45 +1,11 @@
 import glob
 import subprocess
+import typing
 from filecmp import dircmp
 from os import getcwd
 from os.path import splitext, isdir
 
 import click
-
-
-@click.command()
-@click.argument('compare_path', type=click.Path(exists=True))
-@click.option('-p', '--project-path', type=click.Path(exists=True))
-@click.option('-m', '--merge', help="Perform a 3 way merge", default=False, is_flag=True)
-@click.option('-dt', '--diff-theme', help="Diff the theme file to the vendor file (current version)", default=False,
-              is_flag=True)
-@click.option('-dv', '--diff-vendor', help="Diff the current project and compare project vendor files", default=False,
-              is_flag=True)
-def run(compare_path, project_path=None, merge=False, diff_theme=False, diff_vendor=False):
-    if project_path is None:
-        project_path = getcwd()
-
-    source_dirs = get_vendor_view_dirs(project_path)
-    compare_dirs = get_vendor_view_dirs(compare_path)
-    common_dirs = merge_dir_lists(source_dirs, compare_dirs)
-
-    diff = diff_dirs(common_dirs, project_path, compare_path)
-    vendor_changed = diff_to_file_list(diff)
-
-    design_files = get_app_design_files(project_path)
-
-    fmt = click.HelpFormatter(width=9999)
-    fmt.write_heading("Files to review")
-    for line in find_changed_design_files(design_files, vendor_changed):
-        if merge:
-            run_three_way_merge(line, project_path, compare_path)
-        if diff_theme:
-            run_theme_diff(line, project_path)
-        if diff_vendor:
-            run_vendor_diff(line, project_path, compare_path)
-        fmt.write_text(line[0])
-
-    click.echo(fmt.getvalue())
 
 
 def get_vendor_view_dirs(path) -> list:
@@ -68,6 +34,47 @@ def diff_dirs(common_dirs, project_path, compare_path):
                 "files": diff.diff_files})
 
     return result
+
+
+@click.command()
+@click.argument('compare_path', type=click.Path(exists=True))
+@click.option('-p', '--project-path', type=click.Path(exists=True))
+@click.option('-m', '--merge', help="Perform a 3 way merge", default=False, is_flag=True)
+@click.option('-dt', '--diff-theme', help="Diff the theme file to the vendor file (current version)", default=False,
+              is_flag=True)
+@click.option('-dv', '--diff-vendor', help="Diff the current project and compare project vendor files", default=False,
+              is_flag=True)
+@click.option('-i', '--interactive', help="Interactive mode, choose action per file", default=False,
+              is_flag=True)
+def run(compare_path, project_path=None, merge=False, diff_theme=False, diff_vendor=False, interactive=False):
+    if project_path is None:
+        project_path = getcwd()
+
+    source_dirs = get_vendor_view_dirs(project_path)
+    compare_dirs = get_vendor_view_dirs(compare_path)
+    common_dirs = merge_dir_lists(source_dirs, compare_dirs)
+
+    diff = diff_dirs(common_dirs, project_path, compare_path)
+    vendor_changed = diff_to_file_list(diff)
+
+    design_files = get_app_design_files(project_path)
+
+    fmt = click.HelpFormatter(width=9999)
+    fmt.write_heading("Files to review")
+    for line in find_changed_design_files(design_files, vendor_changed):
+        if interactive:
+            process_file_action(line, project_path, compare_path)
+        else:
+            if merge:
+                run_three_way_merge(line, project_path, compare_path)
+            if diff_theme:
+                run_theme_diff(line, project_path)
+            if diff_vendor:
+                run_vendor_diff(line, project_path, compare_path)
+
+        fmt.write_text(line[0])
+
+    click.echo(fmt.getvalue())
 
 
 def merge_dir_lists(source_dirs, compare_dirs):
@@ -156,6 +163,38 @@ def run_vendor_diff(line, project_path, compare_path):
 
     process = subprocess.Popen("bcompare {} {}".format(local, remote), shell=True, stdout=subprocess.PIPE)
     process.wait()
+
+
+def process_file_action(line, project_path, compare_path):
+    action = click.prompt("{}".format(line[0]), type=CustomChoice(['(m)erge', '(d)iff', '(v)endor diff', '(i)gnore']),
+                          show_choices=True)
+
+    if action == 'merge':
+        run_three_way_merge(line, project_path, compare_path)
+    if action == 'diff':
+        run_theme_diff(line, project_path)
+    if action == 'vendor diff':
+        run_vendor_diff(line, project_path, compare_path)
+
+
+class CustomChoice(click.Choice):
+    def convert(
+            self, value: typing.Any, param: typing.Optional["Parameter"], ctx: typing.Optional["Context"]
+    ) -> typing.Any:
+        # Match through normalization and case sensitivity
+        # first do token_normalize_func, then lowercase
+        # preserve original `value` to produce an accurate message in
+        # `self.fail`
+        normed_value = value
+        normed_choices = {choice: choice for choice in self.choices}
+
+        # check for single character response
+        if len(normed_value) == 1:
+            for choice in normed_choices:
+                if choice[1:2] == normed_value:
+                    return choice.replace('(', '').replace(')', '')
+
+        return super().convert(value, param, ctx)
 
 
 if __name__ == '__main__':

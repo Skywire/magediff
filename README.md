@@ -43,3 +43,7 @@ This will run a diff between the app/design and current version vendor files
 `main.py -dv <path to previous version>`
 
 This will run a diff between the current version and compare version vendor files
+
+### Interactive mode
+
+use `-i` switch to be prompted for a merge action for each file
