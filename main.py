@@ -1,4 +1,5 @@
 import glob
+import subprocess
 from filecmp import dircmp
 from os import getcwd
 from os.path import splitext, isdir
@@ -8,9 +9,11 @@ import click
 
 @click.command()
 @click.argument('compare_path', type=click.Path(exists=True))
-@click.option('-p','--project-path', type=click.Path(exists=True))
-def run(compare_path, project_path=None):
-
+@click.option('-p', '--project-path', type=click.Path(exists=True))
+@click.option('-m', '--merge', help="Perform a 3 way merge", default=False, is_flag=True)
+@click.option('-dt', '--diff-theme', help="Diff the theme file to the vendor file (current version)", default=False, is_flag=True)
+@click.option('-dv', '--diff-vendor', help="Diff the current project and compare project vendor files", default=False, is_flag=True)
+def run(compare_path, project_path=None, merge=False, diff_theme=False, diff_vendor=False):
     if project_path is None:
         project_path = getcwd()
 
@@ -26,7 +29,13 @@ def run(compare_path, project_path=None):
     fmt = click.HelpFormatter(width=9999)
     fmt.write_heading("Files to review")
     for line in find_changed_design_files(design_files, vendor_changed):
-        fmt.write_text(line)
+        if merge:
+            run_three_way_merge(line, project_path, compare_path)
+        if diff_theme:
+            run_theme_diff(line, project_path)
+        if diff_vendor:
+            run_vendor_diff(line, project_path, compare_path)
+        fmt.write_text(line[0])
 
     click.echo(fmt.getvalue())
 
@@ -67,7 +76,12 @@ def merge_dir_lists(source_dirs, compare_dirs):
 def get_app_design_files(project_path):
     """Get all view files under app/design"""
     search_path = "{}/app/design/**".format(project_path)
-    extensions = ['xml', 'phtml', 'js', 'html']
+    extensions = [
+        # 'xml',
+        'phtml',
+        'js',
+        'html'
+    ]
     paths = glob.glob(search_path, recursive=True)
 
     return [p.replace(project_path, '') for p in paths if get_extension(p) in extensions]
@@ -96,7 +110,7 @@ def find_changed_design_files(design_files, vendor_changed):
     for file in design_files:
         to_vendor = design_path_to_vendor_path(file)
         if to_vendor in vendor_changed:
-            result.append(file)
+            result.append((file, to_vendor))
 
     return result
 
@@ -112,6 +126,28 @@ def design_path_to_vendor_path(path):
 
     return path
 
+
+def run_three_way_merge(line, project_path, compare_path):
+    local = project_path + line[0]
+    remote = project_path + line[1]
+    base = compare_path + line[1]
+
+    process = subprocess.Popen("bcompare {} {} {}".format(local, remote, base), shell=True, stdout=subprocess.PIPE)
+    process.wait()
+
+def run_theme_diff(line, project_path):
+    local = project_path + line[0]
+    remote = project_path + line[1]
+
+    process = subprocess.Popen("bcompare {} {}".format(local, remote), shell=True, stdout=subprocess.PIPE)
+    process.wait()
+
+def run_vendor_diff(line, project_path, compare_path):
+    local = project_path + line[1]
+    remote = compare_path + line[1]
+
+    process = subprocess.Popen("bcompare {} {}".format(local, remote), shell=True, stdout=subprocess.PIPE)
+    process.wait()
 
 if __name__ == '__main__':
     run()
