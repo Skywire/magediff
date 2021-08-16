@@ -38,6 +38,8 @@ def diff_dirs(common_dirs, project_path, compare_path):
 
 @click.command()
 @click.argument('compare_path', type=click.Path(exists=True))
+@click.option('-x', '--extensions', multiple=True, default=['phtml', 'html'],
+              help="Extensions to check, default -x phtml -x html")
 @click.option('-p', '--project-path', type=click.Path(exists=True))
 @click.option('-m', '--merge', help="Perform a 3 way merge", default=False, is_flag=True)
 @click.option('-dt', '--diff-theme', help="Diff the theme file to the vendor file (current version)", default=False,
@@ -46,7 +48,8 @@ def diff_dirs(common_dirs, project_path, compare_path):
               is_flag=True)
 @click.option('-i', '--interactive', help="Interactive mode, choose action per file", default=False,
               is_flag=True)
-def run(compare_path, project_path=None, merge=False, diff_theme=False, diff_vendor=False, interactive=False):
+def run(compare_path, extensions, project_path=None, merge=False, diff_theme=False, diff_vendor=False,
+        interactive=False):
     if project_path is None:
         project_path = getcwd()
 
@@ -57,7 +60,7 @@ def run(compare_path, project_path=None, merge=False, diff_theme=False, diff_ven
     diff = diff_dirs(common_dirs, project_path, compare_path)
     vendor_changed = diff_to_file_list(diff)
 
-    design_files = get_app_design_files(project_path)
+    design_files = get_app_design_files(project_path, extensions)
 
     fmt = click.HelpFormatter(width=9999)
     fmt.write_heading("Files to review")
@@ -82,15 +85,10 @@ def merge_dir_lists(source_dirs, compare_dirs):
     return list(set(source_dirs).intersection(compare_dirs))
 
 
-def get_app_design_files(project_path):
+def get_app_design_files(project_path, extensions):
     """Get all view files under app/design"""
     search_path = "{}/app/design/**".format(project_path)
-    extensions = [
-        # 'xml',
-        'phtml',
-        'js',
-        'html'
-    ]
+
     paths = glob.glob(search_path, recursive=True)
 
     return [p.replace(project_path, '') for p in paths if get_extension(p) in extensions]
