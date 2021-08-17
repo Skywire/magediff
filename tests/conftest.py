@@ -6,10 +6,10 @@ from pyfakefs.fake_filesystem import FakeFilesystem
 def prepared_filesystem(fs: FakeFilesystem):
     files = [
         # app/design
-        '/project/app/design/frontend/namespace/Magento_Foo/layout/foo.xml',
-        '/project/app/design/frontend/namespace/Magento_Foo/templates/foo.phtml',
-        '/project/app/design/frontend/namespace/Magento_Bar/layout/bar.xml',
-        '/project/app/design/frontend/namespace/Magento_Bar/templates/bar.phtml',
+        '/project/app/design/frontend/namespace/default/Magento_Foo/layout/foo.xml',
+        '/project/app/design/frontend/namespace/default/Magento_Foo/templates/foo.phtml',
+        '/project/app/design/frontend/namespace/default/Magento_Bar/layout/bar.xml',
+        '/project/app/design/frontend/namespace/default/Magento_Bar/templates/bar.phtml',
 
         # project
         '/project/vendor/magento/module-foo/view/frontend/layout/foo.xml',

@@ -54,7 +54,7 @@ def merge_dir_lists(source_dirs, compare_dirs):
 @click.option('-i', '--interactive', help="Interactive mode, choose action per file", default=False,
               is_flag=True)
 def run(compare_path, extensions, project_path=None, merge=False, diff_theme=False, diff_vendor=False,
-        interactive=False): # pragma: no cover
+        interactive=False):
     if project_path is None:
         project_path = getcwd()
 
