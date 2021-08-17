@@ -1,7 +1,7 @@
 from magediff import get_vendor_view_dirs
 
 
-def test_get_vendor_view_dirs(prepare_filesystem):
+def test_get_vendor_view_dirs(prepared_filesystem):
     dirs = get_vendor_view_dirs('/project')
 
     assert (dirs == ['/vendor/magento/module-foo/view/',

@@ -1,7 +1,7 @@
 from magediff import diff_dirs
 
 
-def test_diff_dirs(prepare_filesystem):
+def test_diff_dirs(prepared_filesystem):
     diffs = diff_dirs(
         [
             '/vendor/magento/module-foo/view/frontend/layout/',

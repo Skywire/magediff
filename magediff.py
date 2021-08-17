@@ -36,6 +36,11 @@ def diff_dirs(common_dirs, project_path, compare_path):
     return result
 
 
+def merge_dir_lists(source_dirs, compare_dirs):
+    """Return list of directories that appear in both lists"""
+    return list(set(source_dirs).intersection(compare_dirs))
+
+
 @click.command()
 @click.argument('compare_path', type=click.Path(exists=True))
 @click.option('-x', '--extensions', multiple=True, default=['phtml', 'html'],
@@ -78,11 +83,6 @@ def run(compare_path, extensions, project_path=None, merge=False, diff_theme=Fal
         fmt.write_text(line[0])
 
     click.echo(fmt.getvalue())
-
-
-def merge_dir_lists(source_dirs, compare_dirs):
-    """Return list of directories that appear in both lists"""
-    return list(set(source_dirs).intersection(compare_dirs))
 
 
 def get_app_design_files(project_path, extensions):
