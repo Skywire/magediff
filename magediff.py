@@ -106,7 +106,7 @@ def diff_to_file_list(vendor_diff):
     result = []
 
     for diff in vendor_diff:
-        result.extend([diff['path'] + '/' + f for f in diff['files']])
+        result.extend([diff['path'].rstrip('/') + '/' + f for f in diff['files']])
 
     return result
 
