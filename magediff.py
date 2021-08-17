@@ -141,7 +141,8 @@ def run_three_way_merge(line, project_path, compare_path):
     remote = project_path + line[1]
     base = compare_path + line[1]
 
-    process = subprocess.Popen("bcompare {} {} {}".format(local, remote, base), shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen("{} {} {} {}".format(get_diff_tool(), local, remote, base), shell=True,
+                               stdout=subprocess.PIPE)
     process.wait()
 
 
@@ -150,7 +151,7 @@ def run_theme_diff(line, project_path):
     local = project_path + line[0]
     remote = project_path + line[1]
 
-    process = subprocess.Popen("bcompare {} {}".format(local, remote), shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen("{} {} {}".format(get_diff_tool(), local, remote), shell=True, stdout=subprocess.PIPE)
     process.wait()
 
 
@@ -159,7 +160,7 @@ def run_vendor_diff(line, project_path, compare_path):
     local = project_path + line[1]
     remote = compare_path + line[1]
 
-    process = subprocess.Popen("bcompare {} {}".format(local, remote), shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen("{} {} {}".format(get_diff_tool(), local, remote), shell=True, stdout=subprocess.PIPE)
     process.wait()
 
 
@@ -173,6 +174,19 @@ def process_file_action(line, project_path, compare_path):
         run_theme_diff(line, project_path)
     if action == 'vendor diff':
         run_vendor_diff(line, project_path, compare_path)
+
+
+def get_diff_tool():
+    output = subprocess.run("which phpstorm", capture_output=True, shell=True)
+    if not output.returncode:
+        return output.stdout.decode().rstrip('\n') + ' diff'
+    else:
+        output = subprocess.run("which bcompare", capture_output=True, shell=True)
+
+        if output.returncode:
+            raise ("No diff tool found, tried phpstorm diff and bcompare")
+
+        return output.stdout.decode().rstrip('\n')
 
 
 class CustomChoice(click.Choice):

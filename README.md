@@ -44,7 +44,9 @@ At this time only Magento core modules are checked.
 
 ### Diff and merge
 
-There are 3 diff and merge options, you must have Beyond Compare Installed to use the diff and merge features, additional tools may be added in the future
+There are 3 diff and merge options, you must have either Beyond Compare Pro or PHPStorm installed
+
+If using PHPStorm please create a [CLI launcher with the name phpstorm](https://www.jetbrains.com/help/phpstorm/working-with-the-ide-features-from-command-line.html#toolbox)  
 
 #### Merge
 
